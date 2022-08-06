@@ -5,6 +5,7 @@ import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Loader } from './Loader/Loader';
 import { Modal } from './Modal/Modal';
 import { Searchbar } from './Searchbar/Searchbar';
+import { Box } from './App.styled';
 
 export class App extends Component {
   state = {
@@ -58,7 +59,7 @@ export class App extends Component {
   render() {
     const { images, isLoading, largeImageURL, search } = this.state;
     return (
-      <>
+      <Box>
         <Searchbar onSubmit={this.handleSubmit} />
         {/* {error && (
           <p>
@@ -82,7 +83,7 @@ export class App extends Component {
             <img src={largeImageURL} alt={search} />
           </Modal>
         )}
-      </>
+      </Box>
     );
   }
 }
