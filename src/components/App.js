@@ -18,28 +18,25 @@ export class App extends Component {
     error: false,
   };
 
-  componentDidUpdate(prevProps, prevState) {
+  async componentDidUpdate(prevProps, prevState) {
     const { search, page } = this.state;
     if (prevState.search !== search || prevState.page !== page) {
-      this.xxx(search, page);
+      try {
+        this.setState({ isLoading: true });
+        const images = await API.getImages(search, page);
+        this.setState(prevState => ({
+          images: [...prevState.images, ...images],
+        }));
+        if (images.length === 0) {
+          alert(`No results found for '${search}'`);
+        }
+      } catch (error) {
+        this.setState({ error: true });
+      } finally {
+        this.setState({ isLoading: false });
+      }
     }
   }
-  xxx = async (search, page) => {
-    try {
-      this.setState({ isLoading: true });
-      const images = await API.getImages(search, page);
-      this.setState(prevState => ({
-        images: [...prevState.images, ...images],
-      }));
-      if (images.length === 0) {
-        alert(`No results found for '${search}'`);
-      }
-    } catch (err) {
-      this.setState({ error: true });
-    } finally {
-      this.setState({ isLoading: false });
-    }
-  };
   toggleShowModal = () => {
     this.setState(({ showModal }) => ({
       showModal: !showModal,
