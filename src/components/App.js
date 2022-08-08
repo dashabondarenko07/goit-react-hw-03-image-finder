@@ -1,5 +1,5 @@
 import { Component } from 'react';
-import api from './services/api';
+import * as API from '../services/api';
 import { Button } from './Button/Button';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Loader } from './Loader/Loader';
@@ -18,22 +18,28 @@ export class App extends Component {
     error: false,
   };
 
-  async componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps, prevState) {
     const { search, page } = this.state;
     if (prevState.search !== search || prevState.page !== page) {
-      // try {
-      this.setState({ loading: true });
-      const data = await api(search, page);
-      this.setState(prevState => ({
-        images: [...prevState.images, ...data.hits],
-        loading: false,
-      }));
-      // } catch (error) {
-      // this.setState({ error: true, loading: false });
-      // }
+      this.xxx(search, page);
     }
   }
-
+  xxx = async (search, page) => {
+    try {
+      this.setState({ isLoading: true });
+      const images = await API.getImages(search, page);
+      this.setState(prevState => ({
+        images: [...prevState.images, ...images],
+      }));
+      if (images.length === 0) {
+        alert(`No results found for '${search}'`);
+      }
+    } catch (err) {
+      this.setState({ error: true });
+    } finally {
+      this.setState({ isLoading: false });
+    }
+  };
   toggleShowModal = () => {
     this.setState(({ showModal }) => ({
       showModal: !showModal,
@@ -49,33 +55,19 @@ export class App extends Component {
   handleClick = () => {
     this.setState(prevState => ({ page: prevState.page + 1 }));
   };
-  showButton = () => {
-    return (
-      this.state.images.length !== 0 &&
-      this.state.page * 12 <= this.state.images.length
-    );
-  };
 
   render() {
-    const { images, isLoading, largeImageURL, search } = this.state;
+    const { images, isLoading, largeImageURL, search, error } = this.state;
     return (
       <Box>
         <Searchbar onSubmit={this.handleSubmit} />
-        {/* {error && (
-          <p>
-            Ouch! Something went wrong : Reload the page and try again once.
-          </p>
-        )} */}
-        {(images.length !== 0 && (
+        {error && (
+          <p>Ouch! Something went wrong: Reload the page and try again once.</p>
+        )}
+        {images.length > 0 && (
           <ImageGallery images={images} onClick={this.getLargeImageURL} />
-        )) ||
-          (search.length !== 0 && (
-            <p>
-              Ouch! Something went wrong: Reload the page and try again once.
-            </p>
-          ))}
-        {isLoading && <Loader />}
-        {this.showButton() && (
+        )}
+        {images.length !== 0 && (
           <Button onClick={this.handleClick}>Load more</Button>
         )}
         {largeImageURL && (
@@ -83,6 +75,7 @@ export class App extends Component {
             <img src={largeImageURL} alt={search} />
           </Modal>
         )}
+        {isLoading && <Loader />}
       </Box>
     );
   }
